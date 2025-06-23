@@ -305,7 +305,8 @@ function App() {
       return;
     }
 
-    if (!settings.targetDirectory.trim()) {
+    // Only validate directory for new window mode
+    if (settings.useNewITermWindow && !settings.targetDirectory.trim()) {
       setStatus("エラー: 実行対象ディレクトリを選択してください");
       return;
     }
@@ -498,46 +499,53 @@ function App() {
             </div>
           </div>
 
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              実行対象ディレクトリ
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={settings.targetDirectory}
-                onChange={(e) =>
-                  setSettings({ ...settings, targetDirectory: e.target.value })
-                }
-                className="flex-1 px-4 py-3 text-sm bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:border-blue-500 transition-colors duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isRunning}
-                readOnly
-              />
-              <button
-                type="button"
-                onClick={selectDirectory}
-                className="px-6 py-3 font-medium text-white bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isRunning}
-              >
-                フォルダ選択
-              </button>
-            </div>
-          </div>
+          {settings.useNewITermWindow && (
+            <>
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  実行対象ディレクトリ
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={settings.targetDirectory}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        targetDirectory: e.target.value,
+                      })
+                    }
+                    className="flex-1 px-4 py-3 text-sm bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:border-blue-500 transition-colors duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isRunning}
+                    readOnly
+                  />
+                  <button
+                    type="button"
+                    onClick={selectDirectory}
+                    className="px-6 py-3 font-medium text-white bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isRunning}
+                  >
+                    フォルダ選択
+                  </button>
+                </div>
+              </div>
 
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Claudeコマンドのオプション
-            </label>
-            <input
-              type="text"
-              value={settings.claudeOptions}
-              onChange={(e) =>
-                setSettings({ ...settings, claudeOptions: e.target.value })
-              }
-              className="w-full px-4 py-3 text-sm bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:border-blue-500 transition-colors duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isRunning}
-            />
-          </div>
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Claudeコマンドのオプション
+                </label>
+                <input
+                  type="text"
+                  value={settings.claudeOptions}
+                  onChange={(e) =>
+                    setSettings({ ...settings, claudeOptions: e.target.value })
+                  }
+                  className="w-full px-4 py-3 text-sm bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:border-blue-500 transition-colors duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isRunning}
+                />
+              </div>
+            </>
+          )}
 
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
