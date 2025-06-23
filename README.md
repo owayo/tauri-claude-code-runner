@@ -19,7 +19,7 @@ macOS上でiTermを通じて、指定した時刻にClaude CLIコマンドを実
 
 - macOS（iTerm統合のため必須）
 - [iTerm](https://iterm2.com/)がインストールされていること
-- [Claude CLI](https://docs.anthropic.com/claude/docs/claude-cli)がインストール・設定済みであること
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)がインストール・設定済みであること
 - Node.js 16以上とnpm/pnpm
 - Rustツールチェーン（ビルド用）
 
@@ -211,4 +211,4 @@ AppleScriptを使用してiTermを制御：
 
 - [Tauri](https://tauri.app/)で構築
 - UIは[React](https://react.dev/)と[Tailwind CSS](https://tailwindcss.com/)を使用
-- Anthropic社の[Claude CLI](https://docs.anthropic.com/claude/docs/claude-cli)と統合
+- Anthropic社の[Claude Code](https://docs.anthropic.com/claude/docs/claude-cli)と統合
