@@ -7,6 +7,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -43,12 +46,21 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      - name: Update version
+        run: npm run pretauri:build
+
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: ${{ matrix.args }}
+
+      - name: Get updated version
+        id: get_updated_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -57,6 +69,14 @@ jobs:
           path: |
             src-tauri/target/*/release/bundle/dmg/*.dmg
           retention-days: 7
+
+      - name: Upload version info
+        if: matrix.args == '--target universal-apple-darwin'
+        uses: actions/upload-artifact@v4
+        with:
+          name: version-info
+          path: package.json
+          retention-days: 1
 
   release:
     needs: build
@@ -74,11 +94,17 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -la ./artifacts/
         
+      - name: Get version from artifact
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./artifacts/version-info/package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: Release v${{ steps.get_version.outputs.VERSION }}
           draft: false
           prerelease: false
           generate_release_notes: true

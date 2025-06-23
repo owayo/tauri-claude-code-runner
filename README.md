@@ -2,7 +2,7 @@
 
 macOS上でiTermを通じて、指定した時刻にClaude CLIコマンドを実行するTauri 2.0デスクトップアプリケーション。
 
-![Claude Code Runner](./src/assets/icon.png)
+<img src="./src/assets/icon.png" alt="Claude Code Runner" width="128" height="128">
 
 ## 機能
 
