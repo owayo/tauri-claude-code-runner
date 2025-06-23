@@ -2,7 +2,7 @@
 
 <img src="app.png" alt="Claude Code Runner" width="128" height="128">
 
-macOS上でiTermを通じて、指定した時刻にClaude CLIコマンドを実行するTauri 2.0デスクトップアプリケーション。
+macOS上でiTermを通じて、指定した時刻にClaude Codeコマンドを実行するTauri 2.0デスクトップアプリケーション。
 
 ## 機能
 
@@ -60,7 +60,7 @@ npm run tauri:build
 1. **アプリケーションを起動**
 2. **実行時刻を設定**: Claudeコマンドを実行する時刻を選択
 3. **ディレクトリを選択**: コマンドを実行する作業ディレクトリを選択
-4. **オプションを設定**: Claude CLIのオプションを設定（デフォルト: `--model opus`）
+4. **オプションを設定**: Claude Codeのオプションを設定（デフォルト: `--model opus`）
 5. **コマンドを入力**: Claudeに実行させたいコマンドを入力
 6. **「開始」をクリック**: アプリは指定時刻まで待機して実行
 
@@ -73,7 +73,7 @@ npm run tauri:build
 
 #### 既存ウィンドウモード
 - 現在のiTermセッションにコマンドのみを送信
-- セッションでClaude CLIが既に実行されている必要があります
+- セッションでClaude Codeが既に実行されている必要があります
 - 会話を継続する場合に便利
 
 ### Rate Limit処理
@@ -192,7 +192,7 @@ AppleScriptを使用してiTermを制御：
 ### Rate Limitの問題
 
 - システム時刻が正しいか確認
-- Claude CLIが適切に認証されているか確認
+- Claude Codeが適切に認証されているか確認
 - 特定のエラーメッセージのターミナル出力を監視
 
 ## 貢献
