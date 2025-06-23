@@ -13,6 +13,8 @@ macOS上でiTermを通じて、指定した時刻にClaude CLIコマンドを実
 - 🖥️ **iTerm統合**: iTermとのシームレスな統合
 - 🎯 **ウィンドウ管理**: 新規ウィンドウまたは既存セッションでの実行を選択可能
 
+![Claude Code Runner](https://storage.googleapis.com/zenn-user-upload/84e3d8897c85-20250623.png)
+
 ## 必要な環境
 
 - macOS（iTerm統合のため必須）
