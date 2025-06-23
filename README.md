@@ -20,7 +20,7 @@ macOS上でiTermを通じて、指定した時刻にClaude CLIコマンドを実
 - macOS（iTerm統合のため必須）
 - [iTerm](https://iterm2.com/)がインストールされていること
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)がインストール・設定済みであること
-- Node.js 16以上とnpm/pnpm
+- Node.js 20以上とnpm/pnpm（ビルド用）
 - Rustツールチェーン（ビルド用）
 
 ## インストール
