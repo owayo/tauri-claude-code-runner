@@ -1,4 +1,4 @@
-use chrono::Timelike;
+use chrono::{Datelike, Timelike};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::sync::{Arc, Mutex};
@@ -240,6 +240,7 @@ async fn execute_applescript(
 
             // Check if "esc to interrupt" exists
             let has_esc_to_interrupt = output.contains("esc to interrupt");
+            let has_reset_at = output.contains("reset at");
 
             // If "esc to interrupt" was present before but is now gone, increment absent count
             if had_esc_to_interrupt && !has_esc_to_interrupt {
@@ -252,8 +253,8 @@ async fn execute_applescript(
                         Some(std::time::Instant::now() - Duration::from_secs(60));
                 }
 
-                // If absent 3 times consecutively, processing is complete
-                if esc_absent_count >= 3 {
+                // If absent 3 times consecutively AND no "reset at" detected, processing is complete
+                if esc_absent_count >= 3 && !has_reset_at {
                     // Calculate elapsed time from start to first absence detection
                     let completion_time =
                         first_esc_absent_time.unwrap_or(std::time::Instant::now());
@@ -286,7 +287,18 @@ async fn execute_applescript(
                 if reset_at_count >= 3 {
                     // Rate limit detected - schedule re-execution at next hour:01
                     let now = chrono::Local::now();
-                    let next_hour = (now.hour() + 1) % 24;
+                    let current_hour = now.hour();
+                    let current_minute = now.minute();
+
+                    // Calculate next x:01 time
+                    let next_hour = if current_minute == 0 {
+                        // If it's exactly X:00, schedule for X:01
+                        current_hour
+                    } else {
+                        // Otherwise schedule for next hour's :01
+                        (current_hour + 1) % 24
+                    };
+
                     let mut next_execution = now
                         .with_hour(next_hour)
                         .ok_or("時間の設定エラー")?
@@ -295,7 +307,7 @@ async fn execute_applescript(
                         .with_second(0)
                         .ok_or("秒の設定エラー")?;
 
-                    // If next_execution is in the past (shouldn't happen), add a day
+                    // If next_execution is in the past (shouldn't happen unless it's exactly X:01), add a day
                     if next_execution <= now {
                         next_execution = next_execution + chrono::Duration::days(1);
                     }
@@ -306,7 +318,11 @@ async fn execute_applescript(
 
                     println!(
                         "Rate limit detected (3 consecutive), scheduling re-execution at {:02}:01",
-                        next_hour
+                        if next_execution.day() != now.day() {
+                            (next_hour + 24) % 24
+                        } else {
+                            next_hour
+                        }
                     );
 
                     // Notify frontend about the scheduled re-execution
@@ -314,12 +330,27 @@ async fn execute_applescript(
                         "terminal-output",
                         &format!(
                             "Rate limit detected (3回連続). 次の実行時刻: {:02}:01 (残り約{}分)",
-                            next_hour, wait_minutes
+                            if next_execution.day() != now.day() {
+                                (next_hour + 24) % 24
+                            } else {
+                                next_hour
+                            },
+                            wait_minutes
                         ),
                     )
                     .ok();
-                    app.emit("rate-limit-retry-scheduled", format!("{:02}:01", next_hour))
-                        .ok();
+                    app.emit(
+                        "rate-limit-retry-scheduled",
+                        format!(
+                            "{:02}:01",
+                            if next_execution.day() != now.day() {
+                                (next_hour + 24) % 24
+                            } else {
+                                next_hour
+                            }
+                        ),
+                    )
+                    .ok();
 
                     // Wait until the scheduled time
                     let mut waited = Duration::from_secs(0);
@@ -346,8 +377,8 @@ async fn execute_applescript(
                         let remaining_seconds = total_wait.as_secs() - waited.as_secs();
                         let remaining_minutes = remaining_seconds / 60;
                         let status_update = format!(
-                            "Rate limit detected. 次の実行時刻: {:02}:01 (残り約{}分)",
-                            next_hour, remaining_minutes
+                            "Rate limit detected. 次の実行を待機中 (残り約{}分)",
+                            remaining_minutes
                         );
                         app.emit("terminal-output", &status_update).ok();
                     }
@@ -398,6 +429,7 @@ async fn execute_applescript(
 
             // Check if "esc to interrupt" exists
             let has_esc_to_interrupt = output.contains("esc to interrupt");
+            let has_reset_at = output.contains("reset at");
 
             // If "esc to interrupt" was present before but is now gone, increment absent count
             if had_esc_to_interrupt && !has_esc_to_interrupt {
@@ -410,8 +442,8 @@ async fn execute_applescript(
                         Some(std::time::Instant::now() - Duration::from_secs(60));
                 }
 
-                // If absent 3 times consecutively, processing is complete
-                if esc_absent_count >= 3 {
+                // If absent 3 times consecutively AND no "reset at" detected, processing is complete
+                if esc_absent_count >= 3 && !has_reset_at {
                     // Calculate elapsed time from start to first absence detection
                     let completion_time =
                         first_esc_absent_time.unwrap_or(std::time::Instant::now());
