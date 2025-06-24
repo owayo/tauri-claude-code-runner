@@ -57,42 +57,19 @@ jobs:
           echo "Updated version to: $VERSION"
 
 
-      - name: Import Apple Developer Certificate
-        if: matrix.platform == 'macos-latest' && env.APPLE_CERTIFICATE && env.APPLE_CERTIFICATE_PASSWORD
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      - name: Prepare for ad-hoc signing
+        if: matrix.platform == 'macos-latest'
         run: |
-          # Create variables
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          
-          # Import certificate if provided
-          if [ -n "$APPLE_CERTIFICATE" ]; then
-            echo "$APPLE_CERTIFICATE" | base64 --decode -o $CERTIFICATE_PATH
-            
-            # Create temporary keychain
-            security create-keychain -p "$APPLE_CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
-            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-            security unlock-keychain -p "$APPLE_CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
-            
-            # Import certificate to keychain
-            security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-            security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
-            
-            # Make keychain searchable
-            security list-keychain -d user -s $KEYCHAIN_PATH
-          fi
+          # Remove any existing code signature requirements
+          echo "Preparing for ad-hoc signing..."
 
-      - name: Build with proper signing
+      - name: Build the app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          ENABLE_CODE_SIGNING: ${{ secrets.APPLE_CERTIFICATE != '' }}
+          # Disable code signing completely
+          APPLE_SIGNING_IDENTITY: '-'
+          ENABLE_CODE_SIGNING: false
           # Force tauri-action to use our updated version
           TAURI_SKIP_DEVSERVER_CHECK: true
         with:
@@ -100,21 +77,40 @@ jobs:
           # Disable version update in tauri-action as we handle it ourselves
           includeUpdaterJson: false
 
-      - name: Ad-hoc sign if no certificate
-        if: matrix.platform == 'macos-latest' && !env.APPLE_CERTIFICATE
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      - name: Apply ad-hoc signature and remove quarantine
+        if: matrix.platform == 'macos-latest'
         run: |
-          # Apply ad-hoc signature if no certificate is provided
+          # Apply ad-hoc signature
           find src-tauri/target -name "*.app" -type d | while read app; do
             echo "Ad-hoc signing: $app"
-            codesign --force --deep -s - "$app"
+            # Remove existing signatures first
+            codesign --remove-signature "$app" 2>/dev/null || true
+            # Apply fresh ad-hoc signature
+            codesign --force --deep --sign - "$app"
+            # Remove quarantine attribute
+            xattr -cr "$app"
           done
           
-          # Also sign the DMG files
+          # Process DMG files
           find src-tauri/target -name "*.dmg" -type f | while read dmg; do
-            echo "Ad-hoc signing DMG: $dmg"
-            codesign --force -s - "$dmg"
+            echo "Processing DMG: $dmg"
+            # Create a temporary mount point
+            MOUNT_POINT=$(mktemp -d)
+            
+            # Mount the DMG
+            hdiutil attach "$dmg" -nobrowse -mountpoint "$MOUNT_POINT"
+            
+            # Find and sign the app inside
+            find "$MOUNT_POINT" -name "*.app" -type d | while read app; do
+              echo "Removing quarantine from app in DMG: $app"
+              xattr -cr "$app"
+            done
+            
+            # Unmount
+            hdiutil detach "$MOUNT_POINT"
+            
+            # Remove quarantine from DMG itself
+            xattr -cr "$dmg"
           done
 
       - name: Get updated version
