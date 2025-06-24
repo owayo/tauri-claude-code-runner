@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Claude Code Runner",
-  "version": "25.6.23",
+  "version": "25.6.24",
   "identifier": "com.tauri-claude-code-runner.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -24,13 +24,22 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["dmg"],
+    "targets": [
+      "dmg"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "exceptionDomain": "",
+      "signingIdentity": null,
+      "providerShortName": null,
+      "entitlements": null
+    }
   }
 }

@@ -26,6 +26,9 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Ensure we have a clean working directory
+          clean: true
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -47,20 +50,79 @@ jobs:
         run: npm install
 
       - name: Update version
-        run: npm run pretauri:build
+        run: |
+          npm run pretauri:build
+          # Verify version was updated in all files
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Updated version to: $VERSION"
 
-      - name: Build the app
+
+      - name: Import Apple Developer Certificate
+        if: matrix.platform == 'macos-latest' && env.APPLE_CERTIFICATE && env.APPLE_CERTIFICATE_PASSWORD
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          
+          # Import certificate if provided
+          if [ -n "$APPLE_CERTIFICATE" ]; then
+            echo "$APPLE_CERTIFICATE" | base64 --decode -o $CERTIFICATE_PATH
+            
+            # Create temporary keychain
+            security create-keychain -p "$APPLE_CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
+            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+            security unlock-keychain -p "$APPLE_CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
+            
+            # Import certificate to keychain
+            security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
+            
+            # Make keychain searchable
+            security list-keychain -d user -s $KEYCHAIN_PATH
+          fi
+
+      - name: Build with proper signing
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          ENABLE_CODE_SIGNING: ${{ secrets.APPLE_CERTIFICATE != '' }}
+          # Force tauri-action to use our updated version
+          TAURI_SKIP_DEVSERVER_CHECK: true
         with:
           args: ${{ matrix.args }}
+          # Disable version update in tauri-action as we handle it ourselves
+          includeUpdaterJson: false
+
+      - name: Ad-hoc sign if no certificate
+        if: matrix.platform == 'macos-latest' && !env.APPLE_CERTIFICATE
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+        run: |
+          # Apply ad-hoc signature if no certificate is provided
+          find src-tauri/target -name "*.app" -type d | while read app; do
+            echo "Ad-hoc signing: $app"
+            codesign --force --deep -s - "$app"
+          done
+          
+          # Also sign the DMG files
+          find src-tauri/target -name "*.dmg" -type f | while read dmg; do
+            echo "Ad-hoc signing DMG: $dmg"
+            codesign --force -s - "$dmg"
+          done
 
       - name: Get updated version
         id: get_updated_version
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Build version: $VERSION"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -99,6 +161,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./artifacts/version-info/package.json').version")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1

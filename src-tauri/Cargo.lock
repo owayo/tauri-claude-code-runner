@@ -3524,7 +3524,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-claude-code-runner"
-version = "25.6.23"
+version = "25.6.24"
 dependencies = [
  "chrono",
  "serde",

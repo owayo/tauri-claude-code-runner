@@ -1,7 +1,7 @@
 {
   "name": "tauri-claude-code-runner",
   "private": true,
-  "version": "25.6.23",
+  "version": "25.6.24",
   "type": "module",
   "scripts": {
     "dev": "vite",
