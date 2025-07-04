@@ -1,0 +1,12 @@
+---
+description: Tauri 2.0用のルールです
+globs: 
+alwaysApply: false
+---
+- @Tauri を利用したアプリケーションです
+- CSSフレームワークは @Ant Design を利用すること
+- @Web を利用し、ベストプラクティスに準拠させること
+- フロントからRustを呼ぶ場合は以下を参考にすること
+  https://v2.tauri.app/develop/calling-rust/
+- tauri.conf.json の productName には日本語を含めないこと
+

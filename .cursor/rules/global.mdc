@@ -1,0 +1,62 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# コーディング規約
+## Readable Code
+
+Code should be readable and easily understandable by other engineers.
+
+- **Use descriptive names**: Variables, functions, and classes should have names that clearly convey their purpose
+- **Write appropriate comments**: Avoid redundant comments and instead explain why something is being done rather than what is being done
+- **Limit function responsibilities**: Each function should focus on a single task and not have multiple responsibilities
+- **Write concise functions**: Functions should be concise enough to be reducible to a single statement
+
+## Modular Code
+
+Code should be properly segmented and easy to restructure or modify.
+
+- **Highly cohesive classes**: Classes should be highly cohesive and focus on a single concern
+- **Separation of concerns**: Different problems should be addressed in separate components
+- **Appropriate abstraction**: Create appropriate abstraction layers to hide implementation details
+- **Clear boundaries**: Use interfaces to establish clear boundaries between layers
+
+## Reusable Code
+
+Code should be easy to reuse and avoid reinventing the wheel.
+
+- **Leverage existing functionality**: Utilize existing libraries and standard features
+- **Generic implementations**: Implement generic functionality as shareable components
+- **DRY principle**: Avoid code duplication and adhere to the Don't Repeat Yourself principle
+- **User-friendly structure**: Code that solves small problems should be structured to be easily usable by other engineers
+
+## Robust Error Handling
+
+Errors should be handled appropriately and not ignored.
+
+- **Fail fast**: Report errors close to where problems occur
+- **Don't hide errors**: Don't conceal errors; properly notify higher layers
+- **Distinguish errors**: Differentiate between recoverable and non-recoverable errors
+- **Take warnings seriously**: Don't ignore compiler warnings
+
+## Code That's Hard to Misuse
+
+Code should be designed to be difficult for other engineers to use incorrectly.
+
+- **Clear APIs**: APIs should be clear with self-evident usage
+- **Explicit contracts**: Code contracts should be explicit and not rely on fine print
+- **Utilize type systems**: Leverage type systems to detect errors at compile time
+- **Null safety**: Ensure null safety to prevent null-related issues
+
+## Testable Code
+
+Code should be easy to test and properly tested.
+
+- **Design with testing in mind**: When writing code, consider "how will this code be tested?"
+- **Enhance testability**: Modularize code to improve testability
+- **Dependency injection**: Inject dependencies so they can be replaced with mocks or stubs during testing
+- **Unit testing**: Write unit tests to verify code correctness
+
+# コーディングにあたって
+@Web を利用し、ベストプラクティスに準拠させてください。

@@ -1,0 +1,35 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
+- Manifest V3形式のChrome拡張です。Manifest V3のAPIを使用してください
+  https://developer.chrome.com/docs/extensions/reference/api
+- @Plasmo を利用したChrome拡張です
+- CSSフレームワークは @Ant Design を利用すること
+- CSUI を利用する場合は https://docs.plasmo.com/framework/content-scripts-ui/styling を参照し、以下のように実装すること
+```
+const styleElement = document.createElement("style");
+const styleCache = createCache({
+  key: "plasmo-mui-cache",
+  prepend: true,
+  container: styleElement
+});
+document.head.appendChild(styleElement);
+
+export const getStyle = () => styleElement;
+```
+- Ant DesignでCSUIを使用する場合、`@ant-design/cssinjs` を用いて、以下のようにする
+  ```
+  <CacheProvider value={styleCache}>
+      <StyleProvider container={styleElement}>
+        <ConfigProvider
+          theme={{
+            algorithm: theme.defaultAlgorithm
+          }}>
+        </ConfigProvider>
+      </StyleProvider>
+    </CacheProvider>
+  ```
+- @Web を利用し、ベストプラクティスに準拠させること
+- ビルド時は dev ではなく build を使用すること
